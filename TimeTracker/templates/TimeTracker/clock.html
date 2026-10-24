@@ -19,7 +19,7 @@
 </div>
 
 <p id="distLabel" style="text-align: center; font-size: 13px; color: var(--text-muted); margin-bottom: 24px;">
-   Cebu Institute of Technology - University
+    42m from Cebu Institute of Technology - University
 </p>
 {% if error %}
 <div style="background: #381f1f; color: #ff8b8b; padding: 12px; border-radius: 10px; font-size: 13px; margin-bottom: 16px;">{{ error }}</div>
@@ -69,12 +69,12 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-  function setSimulated(inside) {
-    if (inside) {
-        document.getElementById('latInput').value = "10.2943";
-        document.getElementById('lngInput').value = "123.8812";
-        document.getElementById('distLabel').innerText = "Cebu Institute of Technology - University";
-    }else {
+    function setSimulated(inside) {
+        if (inside) {
+            document.getElementById('latInput').value = "10.3157";
+            document.getElementById('lngInput').value = "123.8854";
+            document.getElementById('distLabel').innerText = "42m from Cebu Heritage Learning Center (Inside workplace)";
+        } else {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition((pos) => {
                     document.getElementById('latInput').value = pos.coords.latitude;
