@@ -5,7 +5,7 @@
 </a>
 
 <div style="text-align: center; margin: 0 0 24px 0;">
-    <div style="font-size: 36px; margin-bottom: 6px;">⏱</div>
+    <div style="font-size: 36px; margin-bottom: 6px;"></div>
     <div style="font-size: 24px; font-family: Georgia, serif; font-weight: 700; color: #b5e4c2;">TimeTracker</div>
 </div>
 
@@ -23,14 +23,14 @@
     <div class="form-group">
         <label class="form-label">Sign up as</label>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <label style="border: 1px solid var(--primary); background: #132216; border-radius: 12px; padding: 12px; cursor: pointer; text-align: center; display: block;">
-                <input type="radio" name="role" value="EMPLOYEE" checked style="display: none;" onchange="toggleInvite(false)">
+            <label id="card-employee" class="role-btn-card active" style="border-radius: 12px; padding: 12px; cursor: pointer; text-align: center; display: block; transition: all 0.2s ease;">
+                <input type="radio" name="role" value="EMPLOYEE" checked style="display: none;" onchange="handleRoleChange('EMPLOYEE')">
                 <div style="font-size: 20px; margin-bottom: 4px;">🧑‍🏫</div>
                 <div style="font-weight: 700; font-size: 14px;">Employee</div>
                 <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Teacher / staff clocking in</div>
             </label>
-            <label style="border: 1px solid var(--surface-border); background: var(--surface); border-radius: 12px; padding: 12px; cursor: pointer; text-align: center; display: block;">
-                <input type="radio" name="role" value="ADMIN" style="display: none;" onchange="toggleInvite(true)">
+            <label id="card-admin" class="role-btn-card" style="border-radius: 12px; padding: 12px; cursor: pointer; text-align: center; display: block; transition: all 0.2s ease;">
+                <input type="radio" name="role" value="ADMIN" style="display: none;" onchange="handleRoleChange('ADMIN')">
                 <div style="font-size: 20px; margin-bottom: 4px;">🛡️</div>
                 <div style="font-weight: 700; font-size: 14px;">Admin</div>
                 <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Manages attendance & approvals</div>
@@ -70,9 +70,32 @@
     <button type="submit" class="btn-primary">Create account</button>
 </form>
 
+<style>
+    .role-btn-card {
+        border: 1px solid var(--surface-border);
+        background: var(--surface);
+    }
+    .role-btn-card.active {
+        border: 1px solid var(--primary) !important;
+        background: #132216 !important;
+    }
+</style>
+
 <script>
-    function toggleInvite(isAdmin) {
-        document.getElementById('inviteCodeGroup').style.display = isAdmin ? 'block' : 'none';
+    function handleRoleChange(role) {
+        const employeeCard = document.getElementById('card-employee');
+        const adminCard = document.getElementById('card-admin');
+        const inviteGroup = document.getElementById('inviteCodeGroup');
+
+        if (role === 'EMPLOYEE') {
+            employeeCard.classList.add('active');
+            adminCard.classList.remove('active');
+            inviteGroup.style.display = 'none';
+        } else {
+            adminCard.classList.add('active');
+            employeeCard.classList.remove('active');
+            inviteGroup.style.display = 'block';
+        }
     }
 </script>
 {% endblock %}
