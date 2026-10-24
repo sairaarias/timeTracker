@@ -51,11 +51,11 @@
         {% block content %}{% endblock %}
 
         <nav class="bottom-nav">
-            <a href="{% url 'admin_overview' %}" class="nav-item {% if request.resolver_match.url_name == 'admin_overview' %}active{% endif %}">📊 Overview</a>
-            <a href="{% url 'admin_logs' %}" class="nav-item {% if request.resolver_match.url_name == 'admin_logs' %}active{% endif %}">📋 Log</a>
-            <a href="{% url 'admin_leave' %}" class="nav-item {% if request.resolver_match.url_name == 'admin_leave' %}active{% endif %}">✓ Leave</a>
-            <a href="{% url 'admin_users' %}" class="nav-item {% if request.resolver_match.url_name == 'admin_users' %}active{% endif %}">👥 Users</a>
-            <a href="{% url 'admin_reports' %}" class="nav-item {% if request.resolver_match.url_name == 'admin_reports' %}active{% endif %}">📄 Reports</a>
+            <a href="{% url 'admin_overview' %}" class="nav-item {% if request.resolver_match.url_name == 'admin_overview' %}active{% endif %}">Overview</a>
+            <a href="{% url 'admin_logs' %}" class="nav-item {% if request.resolver_match.url_name == 'admin_logs' %}active{% endif %}">Log</a>
+            <a href="{% url 'admin_leave' %}" class="nav-item {% if request.resolver_match.url_name == 'admin_leave' %}active{% endif %}">Leave</a>
+            <a href="{% url 'admin_users' %}" class="nav-item {% if request.resolver_match.url_name == 'admin_users' %}active{% endif %}">Users</a>
+            <a href="{% url 'admin_reports' %}" class="nav-item {% if request.resolver_match.url_name == 'admin_reports' %}active{% endif %}">Reports</a>
         </nav>
     </div>
 </body>
