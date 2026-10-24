@@ -22,15 +22,20 @@
         <div style="margin-bottom: 14px;">
             <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 6px;">Department</label>
             <select name="department">
-                <option>All departments</option>
+                <option value="" {% if not selected_department %}selected{% endif %}>All departments</option>
+                {% for dept in departments %}
+                    <option value="{{ dept }}" {% if selected_department == dept %}selected{% endif %}>
+                        {{ dept }}
+                    </option>
+                {% endfor %}
             </select>
         </div>
 
         <div style="margin-bottom: 20px;">
             <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 6px;">Format</label>
             <select name="format">
-                <option>PDF</option>
-                <option>CSV</option>
+                <option value="CSV">CSV</option>
+                <option value="PDF">PDF</option>
             </select>
         </div>
 
@@ -38,10 +43,55 @@
     </form>
 </div>
 
+<!-- Attendance preview section matching the filtered department -->
+{% if records %}
+<div class="card" style="padding: 16px; margin-top: 14px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <div style="font-weight: 600; font-size: 14px;">Records Preview</div>
+        <span style="font-size: 12px; color: var(--text-muted);">
+            {% if selected_department %}{{ selected_department }}{% else %}All departments{% endif %} ({{ records|length }})
+        </span>
+    </div>
+
+    <div class="table-responsive">
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--surface-border); color: var(--text-muted);">
+                    <th style="padding: 8px 10px; text-align: left;">Date</th>
+                    <th style="padding: 8px 10px; text-align: left;">Name</th>
+                    <th style="padding: 8px 10px; text-align: left;">Department</th>
+                    <th style="padding: 8px 10px; text-align: left;">In</th>
+                    <th style="padding: 8px 10px; text-align: left;">Out</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in records %}
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.04);">
+                    <td style="padding: 10px;">{{ r.date }}</td>
+                    <td style="padding: 10px; font-weight: 500;">
+                        {% if r.user.profile.full_name %}{{ r.user.profile.full_name }}{% else %}{{ r.user.username }}{% endif %}
+                    </td>
+                    <td style="padding: 10px; color: var(--text-muted);">
+                        {% if r.user.profile.department %}{{ r.user.profile.department }}{% else %}-{% endif %}
+                    </td>
+                    <td style="padding: 10px;">
+                        {% if r.clock_in %}{{ r.clock_in|time:"H:i" }}{% else %}-{% endif %}
+                    </td>
+                    <td style="padding: 10px;">
+                        {% if r.clock_out %}{{ r.clock_out|time:"H:i" }}{% else %}-{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
 <div class="card" style="border: 1px dashed #27362a; text-align: center; padding: 28px 16px; margin-top: 14px;">
     <div style="font-size: 28px; margin-bottom: 8px;">📄</div>
     <div style="font-size: 13px; color: var(--text-muted); line-height: 1.4;">
-        Full pay-period attendance summary, ready in seconds.
+        No attendance records found for this department yet.
     </div>
 </div>
+{% endif %}
 {% endblock %}

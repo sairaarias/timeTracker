@@ -53,6 +53,7 @@ def login_view(request):
 
     demo_profiles = UserProfile.objects.all()[:3]
     return render(request, 'TimeTracker/login.html', {'error': error, 'demo_profiles': demo_profiles})
+
 def register_view(request):
     if request.method == 'POST':
         role = request.POST.get('role', 'EMPLOYEE')
@@ -197,7 +198,6 @@ def admin_overview(request):
     pending_users_count = UserProfile.objects.filter(is_approved=False).count()
     pending_leaves_count = LeaveRequest.objects.filter(status='Pending').count()
 
-    # Build snapshot list for today
     snapshot = []
     for sp in staff_profiles:
         att = today_attendances.filter(user=sp.user).first()
@@ -273,13 +273,39 @@ def admin_users(request):
 
 @login_required(login_url='login')
 def admin_reports(request):
+    # Retrieve all unique departments registered by users
+    departments = (
+        UserProfile.objects.exclude(department__isnull=True)
+        .exclude(department__exact='')
+        .values_list('department', flat=True)
+        .distinct()
+        .order_by('department')
+    )
+
+    selected_department = request.GET.get('department', '').strip()
+
+    # Query attendance records with related user and profile data
+    records = Attendance.objects.select_related('user__profile').all().order_by('-date')
+
+    # Apply department filter if selected
+    if selected_department and selected_department != 'ALL':
+        records = records.filter(user__profile__department__iexact=selected_department)
+
+    # Handle CSV Export
     if request.method == 'POST':
         response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="attendance_report.csv"'
+        filename = f"attendance_report_{selected_department or 'all'}.csv"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
         writer = csv.writer(response)
         writer.writerow(['Date', 'Name', 'Department', 'Clock In', 'Clock Out', 'Late'])
-        for a in Attendance.objects.all():
-            writer.writerow([a.date, a.user.profile.full_name, a.user.profile.department, a.clock_in, a.clock_out, a.is_late])
+        for a in records:
+            name = getattr(getattr(a.user, 'profile', None), 'full_name', a.user.username)
+            dept = getattr(getattr(a.user, 'profile', None), 'department', '-')
+            writer.writerow([a.date, name, dept, a.clock_in, a.clock_out, a.is_late])
         return response
 
-    return render(request, 'TimeTracker/admin_reports.html')
+    return render(request, 'TimeTracker/admin_reports.html', {
+        'departments': departments,
+        'selected_department': selected_department,
+        'records': records,
+    })
