@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>TimeTracker Dashboard</title>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 700px; margin: 40px auto; padding: 0 16px; }
+        h1 { margin-bottom: 4px; }
+        .summary { color: #555; margin-bottom: 24px; }
+        ul { list-style: none; padding: 0; }
+        li { padding: 12px 16px; border: 1px solid #e0e0e0; margin-bottom: 8px; border-radius: 6px; display: flex; justify-content: space-between; }
+        .badge { background: #eef2ff; color: #4338ca; font-weight: 600; padding: 4px 8px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>Task Dashboard</h1>
+    <p class="summary">Total Logged Time: <strong>{{ total_minutes }} mins</strong></p>
+
+    <ul>
+        {% for task in tasks %}
+            <li>
+                <div>
+                    <strong>{{ task.title }}</strong>
+                    {% if task.description %}<p style="margin: 4px 0 0 0; color: #666; font-size: 14px;">{{ task.description }}</p>{% endif %}
+                </div>
+                <span class="badge">{{ task.duration_minutes }} min</span>
+            </li>
+        {% empty %}
+            <p>No tasks logged yet. Add one in the <a href="/admin/">Admin Panel</a>!</p>
+        {% endfor %}
+    </ul>
+</body>
+</html>

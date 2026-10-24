@@ -1,0 +1,47 @@
+{% extends 'TimeTracker/admin_base.html' %}
+{% block content %}
+<div class="page-tag">ADMIN PANEL</div>
+<div class="page-title">Reports</div>
+<p class="page-sub">Generate payroll-ready attendance reports for any date range.</p>
+
+<div class="card" style="padding: 16px;">
+    <div style="font-weight: 600; font-size: 15px; margin-bottom: 14px;">Generate report</div>
+    <form method="POST">
+        {% csrf_token %}
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;">
+            <div>
+                <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 6px;">From</label>
+                <input type="date" name="from_date" value="2026-09-01">
+            </div>
+            <div>
+                <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 6px;">To</label>
+                <input type="date" name="to_date" value="2026-09-30">
+            </div>
+        </div>
+
+        <div style="margin-bottom: 14px;">
+            <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 6px;">Department</label>
+            <select name="department">
+                <option>All departments</option>
+            </select>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 6px;">Format</label>
+            <select name="format">
+                <option>PDF</option>
+                <option>CSV</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn-primary" style="border-radius: 12px;">Generate report</button>
+    </form>
+</div>
+
+<div class="card" style="border: 1px dashed #27362a; text-align: center; padding: 28px 16px; margin-top: 14px;">
+    <div style="font-size: 28px; margin-bottom: 8px;">📄</div>
+    <div style="font-size: 13px; color: var(--text-muted); line-height: 1.4;">
+        Full pay-period attendance summary, ready in seconds.
+    </div>
+</div>
+{% endblock %}

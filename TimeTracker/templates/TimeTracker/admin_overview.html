@@ -1,0 +1,55 @@
+{% extends 'TimeTracker/admin_base.html' %}
+{% block content %}
+<style>
+    .snapshot-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+    }
+    .snapshot-row:not(:last-child) {
+        border-bottom: 1px solid var(--surface-border);
+    }
+</style>
+
+<div class="page-tag">Admin Panel</div>
+<div class="page-title">Organization overview</div>
+<p class="page-sub">Monitor attendance, manage leave requests, verify accounts, and generate payroll-ready reports.</p>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 24px;">
+    <div class="card" style="text-align: center; margin: 0; padding: 14px 6px;">
+        <div style="font-size: 22px; font-weight: 700;">{{ clocked_in_count }}</div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Clocked in now</div>
+    </div>
+    <div class="card" style="text-align: center; margin: 0; padding: 14px 6px;">
+        <div style="font-size: 22px; font-weight: 700;">{{ completed_count }}</div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Completed today</div>
+    </div>
+    <div class="card" style="text-align: center; margin: 0; padding: 14px 6px;">
+        <div style="font-size: 22px; font-weight: 700;">{{ not_clocked_in_count }}</div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Not clocked in yet</div>
+    </div>
+</div>
+
+<div style="font-weight: 600; font-size: 15px; margin-bottom: 12px;">Needs your attention</div>
+<div class="card" style="background: #231b14; border-color: #3d2a1b; display: flex; justify-content: space-between; align-items: center; padding: 14px 16px;">
+    <span style="font-size: 13px; color: #ffbc85;">{{ pending_users_count }} new registration awaiting verification.</span>
+    <a href="{% url 'admin_users' %}" style="font-size: 13px; color: #ff9d4d; font-weight: 600; text-decoration: none;">Review &rarr;</a>
+</div>
+<div class="card" style="background: #231b14; border-color: #3d2a1b; display: flex; justify-content: space-between; align-items: center; padding: 14px 16px;">
+    <span style="font-size: 13px; color: #ffbc85;">{{ pending_leaves_count }} leave request awaiting approval.</span>
+    <a href="{% url 'admin_leave' %}" style="font-size: 13px; color: #ff9d4d; font-weight: 600; text-decoration: none;">Review &rarr;</a>
+</div>
+
+<div style="font-weight: 600; font-size: 15px; margin: 24px 0 12px 0;">Today’s snapshot</div>
+<div class="card" style="padding: 6px 16px;">
+    {% for item in snapshot %}
+    <div class="snapshot-row">
+        <span style="font-weight: 600; font-size: 14px;">{{ item.profile.full_name }}</span>
+        <span style="background: #231d16; color: #d6985c; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700;">{{ item.status }}</span>
+    </div>
+    {% empty %}
+    <p style="color: var(--text-muted); font-size: 13px; padding: 12px 0;">No staff records found.</p>
+    {% endfor %}
+</div>
+{% endblock %}

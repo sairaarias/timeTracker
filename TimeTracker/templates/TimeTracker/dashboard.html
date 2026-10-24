@@ -1,0 +1,55 @@
+{% extends 'TimeTracker/base.html' %}
+{% block content %}
+<div class="page-tag">Dashboard</div>
+<div class="page-title">Good day, {{ user.first_name|default:user.username }}.</div>
+<p class="page-sub">Here's a snapshot of your attendance today and this week.</p>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+    <div class="card" style="padding: 14px 10px; text-align: center; margin-bottom: 0;">
+        <div style="font-size: 20px; font-weight: 700;">{% if attendance_today %}Active{% else %}—{% endif %}</div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Status today</div>
+    </div>
+    <div class="card" style="padding: 14px 10px; text-align: center; margin-bottom: 0;">
+        <div style="font-size: 20px; font-weight: 700;">{{ total_hours }}h</div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Hours this week</div>
+    </div>
+    <div class="card" style="padding: 14px 10px; text-align: center; margin-bottom: 0;">
+        <div style="font-size: 20px; font-weight: 700;">{{ late_count }}</div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Late days (last 6)</div>
+    </div>
+</div>
+
+<div class="card" style="text-align: center; padding: 24px 16px;">
+    <div style="font-weight: 600; font-size: 15px; margin-bottom: 12px;">Today</div>
+    {% if not attendance_today %}
+        <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 18px;">You haven't clocked in yet today.</p>
+        <a href="{% url 'clock' %}" class="btn-primary" style="display: block; width: 100%;">Clock In Now</a>
+    {% elif not attendance_today.clock_out %}
+        <p style="color: var(--primary); font-size: 13px; margin-bottom: 18px;">Clocked in at {{ attendance_today.clock_in|time:"H:i" }}</p>
+        <a href="{% url 'clock' %}" class="btn-primary" style="display: block; width: 100%;">Clock Out</a>
+    {% else %}
+        <p style="color: var(--text-muted); font-size: 13px;">Shift completed ({{ attendance_today.clock_in|time:"H:i" }} – {{ attendance_today.clock_out|time:"H:i" }})</p>
+    {% endif %}
+</div>
+
+<div style="display: flex; justify-content: space-between; align-items: baseline; margin: 24px 0 12px 0;">
+    <div style="font-weight: 600; font-size: 15px;">Recent attendance</div>
+    <a href="{% url 'history' %}" style="font-size: 12px; color: var(--primary); text-decoration: none;">View full history</a>
+</div>
+
+{% for a in recent_attendances %}
+<div class="card" style="display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; margin-bottom: 8px;">
+    <div>
+        <div style="font-size: 13px; font-weight: 600;">
+            {{ a.date|date:"M d" }} • {% if a.is_late %}<span style="color: var(--accent-orange);">Late</span>{% else %}On time{% endif %}
+        </div>
+        <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+            {{ a.clock_in|time:"H:i" }} – {{ a.clock_out|time:"H:i"|default:"--" }}
+        </div>
+    </div>
+    <span style="font-size: 13px; font-weight: 600; color: var(--text-muted);">{{ a.total_hours|default:"--" }}h</span>
+</div>
+{% empty %}
+<p style="font-size: 13px; color: var(--text-muted);">No recent records found.</p>
+{% endfor %}
+{% endblock %}

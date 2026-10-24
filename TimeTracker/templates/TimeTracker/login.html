@@ -1,0 +1,49 @@
+{% extends 'TimeTracker/base.html' %}
+{% block content %}
+<style>
+    .role-badge-ADMIN { color: #8de2a6; font-size: 11px; font-weight: 700; }
+    .role-badge-EMPLOYEE { color: var(--text-muted); font-size: 11px; font-weight: 700; }
+</style>
+
+<div style="text-align: center; margin: 24px 0 32px 0;">
+    <div style="font-size: 38px; margin-bottom: 8px;">⏱</div>
+    <div style="font-size: 26px; font-family: Georgia, serif; font-weight: 700; color: #b5e4c2;">TimeTracker</div>
+    <p style="font-size: 13px; color: var(--text-muted); margin-top: 6px;">Attendance & time logging for teachers and staff</p>
+</div>
+
+<div style="background: #141b14; border: 1px solid var(--surface-border); border-radius: 14px; padding: 4px; display: flex; margin-bottom: 24px;">
+    <div style="flex: 1; text-align: center; padding: 10px; background: var(--primary); color: #09130b; border-radius: 10px; font-weight: 700; font-size: 14px;">Log in</div>
+    <a href="{% url 'register' %}" style="flex: 1; text-align: center; padding: 10px; color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 600;">Register</a>
+</div>
+
+{% if error %}
+<div style="background: #381f1f; color: #ff8b8b; padding: 10px 14px; border-radius: 10px; font-size: 13px; margin-bottom: 16px;">{{ error }}</div>
+{% endif %}
+
+<form method="POST">
+    {% csrf_token %}
+    <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" name="email" class="input-box" placeholder="you@timetracker.edu" required>
+    </div>
+    <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" name="password" class="input-box" placeholder="••••••••" required>
+    </div>
+    <button type="submit" class="btn-primary" style="margin-top: 8px;">Log in</button>
+</form>
+
+<div class="card" style="margin-top: 32px; border: 1px dashed #2f3e31;">
+    <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.8px; color: var(--text-muted); margin-bottom: 12px;">DEMO ACCOUNTS — TAP TO SIGN IN INSTANTLY</div>
+    {% for p in demo_profiles %}
+    <form method="POST" style="margin-bottom: 8px;">
+        {% csrf_token %}
+        <input type="hidden" name="demo_user" value="{{ p.user.email }}">
+        <button type="submit" style="width: 100%; display: flex; justify-content: space-between; align-items: center; background: #121813; border: 1px solid var(--surface-border); border-radius: 12px; padding: 14px 16px; color: var(--text-main); font-weight: 600; cursor: pointer;">
+            <span>{{ p.full_name }}</span>
+            <span class="role-badge-{{ p.role }}">{{ p.role }}</span>
+        </button>
+    </form>
+    {% endfor %}
+</div>
+{% endblock %}

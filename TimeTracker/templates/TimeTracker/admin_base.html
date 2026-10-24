@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TimeTracker Admin</title>
+    <style>
+        :root {
+            --bg: #0e140f;
+            --surface: #171f18;
+            --surface-border: #232d24;
+            --primary: #75b888;
+            --primary-hover: #86c999;
+            --text-main: #f0f4f1;
+            --text-muted: #889689;
+            --accent-orange: #d97736;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background: #050805; color: var(--text-main); display: flex; justify-content: center; min-height: 100vh; }
+        .app-shell { width: 100%; max-width: 420px; background: var(--bg); min-height: 100vh; padding: 18px 20px 85px 20px; position: relative; border-left: 1px solid #1a221a; border-right: 1px solid #1a221a; }
+        .top-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+        .brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 19px; color: #b5e4c2; }
+        .avatar-badge { background: #1f2b21; color: var(--primary); padding: 6px 12px; border-radius: 20px; font-weight: 600; font-size: 13px; }
+        .btn-logout { background: transparent; border: 1px solid var(--surface-border); color: var(--text-muted); padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; text-decoration: none; }
+        
+        .page-tag { font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--primary); text-transform: uppercase; margin-bottom: 4px; }
+        .page-title { font-size: 26px; font-family: Georgia, serif; font-weight: 600; margin-bottom: 6px; }
+        .page-sub { color: var(--text-muted); font-size: 13px; margin-bottom: 20px; line-height: 1.4; }
+        .card { background: var(--surface); border: 1px solid var(--surface-border); border-radius: 18px; padding: 16px; margin-bottom: 12px; }
+        
+        .btn-primary { width: 100%; background: var(--primary); color: #0b170e; border: none; border-radius: 12px; padding: 12px; font-weight: 700; font-size: 14px; cursor: pointer; text-align: center; }
+        .btn-secondary { width: 100%; background: #161e17; border: 1px solid var(--surface-border); color: var(--text-main); border-radius: 12px; padding: 12px; font-weight: 700; font-size: 14px; cursor: pointer; }
+
+        .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 420px; background: #0c120d; border-top: 1px solid var(--surface-border); display: flex; justify-content: space-around; padding: 10px 0; z-index: 100; }
+        .nav-item { color: var(--text-muted); text-decoration: none; display: flex; flex-direction: column; align-items: center; font-size: 11px; gap: 4px; }
+        .nav-item.active { color: var(--primary); font-weight: 600; }
+
+        input, select { width: 100%; background: #121813; border: 1px solid var(--surface-border); border-radius: 12px; padding: 12px 14px; color: var(--text-main); font-size: 14px; outline: none; }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <div class="top-nav">
+            <div class="brand">⏱ TimeTracker</div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <span class="avatar-badge">{{ user.first_name|default:user.username|slice:":2"|upper }}</span>
+                <a href="{% url 'logout' %}" class="btn-logout">Log out</a>
+            </div>
+        </div>
+
+        {% block content %}{% endblock %}
+
+        <nav class="bottom-nav">
+            <a href="{% url 'admin_overview' %}" class="nav-item {% if request.resolver_match.url_name == 'admin_overview' %}active{% endif %}">📊 Overview</a>
+            <a href="{% url 'admin_logs' %}" class="nav-item {% if request.resolver_match.url_name == 'admin_logs' %}active{% endif %}">📋 Log</a>
+            <a href="{% url 'admin_leave' %}" class="nav-item {% if request.resolver_match.url_name == 'admin_leave' %}active{% endif %}">✓ Leave</a>
+            <a href="{% url 'admin_users' %}" class="nav-item {% if request.resolver_match.url_name == 'admin_users' %}active{% endif %}">👥 Users</a>
+            <a href="{% url 'admin_reports' %}" class="nav-item {% if request.resolver_match.url_name == 'admin_reports' %}active{% endif %}">📄 Reports</a>
+        </nav>
+    </div>
+</body>
+</html>

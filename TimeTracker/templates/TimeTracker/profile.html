@@ -1,0 +1,33 @@
+{% extends 'TimeTracker/base.html' %}
+{% block content %}
+<div class="page-tag">Profile</div>
+<div class="page-title">Your details</div>
+<p class="page-sub">View and update your personal information.</p>
+
+<div class="card" style="text-align: center; margin-bottom: 24px;">
+    <div style="width: 72px; height: 72px; background: #1c2e21; border: 2px solid var(--primary); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; color: var(--primary); margin: 0 auto 12px auto;">
+        {{ user.first_name|default:user.username|slice:":2"|upper }}
+    </div>
+    <div style="font-size: 18px; font-weight: 700;">{{ profile.full_name|default:user.username }}</div>
+    <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">{{ profile.employee_id }} • {{ profile.role }}</div>
+</div>
+
+<div class="card">
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label class="form-label">Full name</label>
+            <input type="text" name="full_name" class="input-box" value="{{ profile.full_name }}">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Department / Subject</label>
+            <input type="text" name="department" class="input-box" value="{{ profile.department }}">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" name="email" class="input-box" value="{{ user.email }}">
+        </div>
+        <button type="submit" class="btn-primary" style="margin-top: 8px;">Save changes</button>
+    </form>
+</div>
+{% endblock %}

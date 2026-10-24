@@ -1,0 +1,50 @@
+{% extends 'TimeTracker/base.html' %}
+{% block content %}
+<div class="page-tag">Leave & Excuse Requests</div>
+<div class="page-title">File a request</div>
+<p class="page-sub">Submit a leave or excuse request for admin approval, and track the status of past requests.</p>
+
+<div class="card">
+    <div style="font-weight: 600; font-size: 14px; margin-bottom: 14px;">New request</div>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label class="form-label">Type</label>
+            <select name="request_type" class="input-box" style="appearance: none;">
+                <option value="Sick Leave">Sick Leave</option>
+                <option value="Vacation Leave">Vacation Leave</option>
+                <option value="Official Business">Official Business</option>
+            </select>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;" class="form-group">
+            <div>
+                <label class="form-label">From</label>
+                <input type="date" name="from_date" class="input-box" required>
+            </div>
+            <div>
+                <label class="form-label">To</label>
+                <input type="date" name="to_date" class="input-box" required>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Reason</label>
+            <textarea name="reason" rows="3" class="input-box" placeholder="Briefly explain your request" required></textarea>
+        </div>
+        <button type="submit" class="btn-primary" style="margin-top: 4px;">Submit request</button>
+    </form>
+</div>
+
+<div style="font-weight: 600; font-size: 15px; margin: 24px 0 12px 0;">Your requests</div>
+{% for r in requests %}
+<div class="card" style="margin-bottom: 8px;">
+    <div style="display: flex; justify-content: space-between; align-items: baseline;">
+        <strong>{{ r.request_type }}</strong>
+        <span style="font-size: 11px; font-weight: 700; color: #d89858; background: #332316; padding: 2px 8px; border-radius: 12px;">{{ r.status }}</span>
+    </div>
+    <div style="font-size: 12px; color: var(--text-muted); margin: 6px 0;">{{ r.from_date|date:"M d, Y" }} – {{ r.to_date|date:"M d, Y" }}</div>
+    <div style="font-size: 13px; color: #ccd5ce;">{{ r.reason }}</div>
+</div>
+{% empty %}
+<p style="font-size: 13px; color: var(--text-muted);">No requests filed yet.</p>
+{% endfor %}
+{% endblock %}

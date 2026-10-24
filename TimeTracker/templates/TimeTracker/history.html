@@ -1,0 +1,44 @@
+{% extends 'TimeTracker/base.html' %}
+{% block content %}
+<div class="page-tag">Attendance History</div>
+<div class="page-title">Your past records</div>
+<p class="page-sub">Every clock-in, clock-out, and computed hours rendered, most recent first.</p>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 24px;">
+    <div class="card" style="text-align: center; margin: 0; padding: 14px 8px;">
+        <div style="font-size: 22px; font-weight: 700; color: var(--text-main);">{{ on_time_count }}</div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">On-time days</div>
+    </div>
+    <div class="card" style="text-align: center; margin: 0; padding: 14px 8px;">
+        <div style="font-size: 22px; font-weight: 700; color: var(--text-main);">{{ late_count }}</div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Late days</div>
+    </div>
+    <div class="card" style="text-align: center; margin: 0; padding: 14px 8px;">
+        <div style="font-size: 22px; font-weight: 700; color: var(--text-main);">0</div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Absences</div>
+    </div>
+</div>
+
+{% for a in records %}
+<div class="card" style="display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; margin-bottom: 8px;">
+    <div>
+        <div style="font-weight: 600; font-size: 14px;">
+            {{ a.date|date:"M d" }} &nbsp; 
+            <span style="font-size: 13px; font-family: monospace;">{{ a.clock_in|time:"H:i" }} – {{ a.clock_out|time:"H:i"|default:"--" }}</span>
+        </div>
+        <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+            {{ a.total_hours|default:"In progress" }}{% if a.total_hours %} hrs{% endif %}
+        </div>
+    </div>
+    <div>
+        {% if a.is_late %}
+            <span style="background: #392415; color: #e89555; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">Late</span>
+        {% else %}
+            <span style="background: #18281d; color: var(--primary); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">On time</span>
+        {% endif %}
+    </div>
+</div>
+{% empty %}
+<p style="color: var(--text-muted); font-size: 13px;">No attendance history logged yet.</p>
+{% endfor %}
+{% endblock %}

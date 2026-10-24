@@ -1,0 +1,30 @@
+{% extends 'TimeTracker/admin_base.html' %}
+{% block content %}
+<div class="page-tag">ADMIN PANEL</div>
+<div class="page-title">Leave approvals</div>
+<p class="page-sub">Approve or decline pending leave and excuse requests.</p>
+
+{% for r in pending_leaves %}
+<div class="card" style="padding: 16px;">
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+        <div style="width: 38px; height: 38px; border-radius: 8px; background: #222d23; color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;">
+            {{ r.user.profile.full_name|slice:":2"|upper }}
+        </div>
+        <div>
+            <div style="font-weight: 600; font-size: 15px; color: var(--text-main);">{{ r.user.profile.full_name }}</div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+                {{ r.from_date|date:"M d, Y" }} • {{ r.request_type }} — {{ r.reason }}
+            </div>
+        </div>
+    </div>
+    <form method="POST" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        {% csrf_token %}
+        <input type="hidden" name="leave_id" value="{{ r.id }}">
+        <button type="submit" name="action" value="decline" class="btn-secondary">Decline</button>
+        <button type="submit" name="action" value="approve" class="btn-primary">Approve</button>
+    </form>
+</div>
+{% empty %}
+<p style="color: var(--text-muted); font-size: 13px;">No leave requests pending approval.</p>
+{% endfor %}
+{% endblock %}

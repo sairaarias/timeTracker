@@ -1,0 +1,88 @@
+{% extends 'TimeTracker/base.html' %}
+{% block content %}
+<div class="page-tag">Clock In / Out</div>
+<div class="page-title">Verify your location, then punch.</div>
+<p class="page-sub">Clock-in is only approved when your device location falls within the workplace radius (GPS geofencing).</p>
+
+<div style="text-align: center; margin: 30px 0;">
+    <div id="liveClock" style="font-family: monospace; font-size: 32px; font-weight: 700; color: #a9deb4;">--:--:--</div>
+    <p style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">{{ attendance_today.date|default:"Today" }}</p>
+</div>
+
+<!-- Radar Visualization -->
+<div style="display: flex; justify-content: center; margin-bottom: 24px;">
+    <div style="width: 140px; height: 140px; border-radius: 50%; border: 1px dashed #2f4433; display: flex; align-items: center; justify-content: center;">
+        <div style="width: 80px; height: 80px; border-radius: 50%; background: #1c2e21; border: 1px solid var(--primary); display: flex; align-items: center; justify-content: center; font-size: 11px; color: #b7e0c0;">
+            100m radius
+        </div>
+    </div>
+</div>
+
+<p id="distLabel" style="text-align: center; font-size: 13px; color: var(--text-muted); margin-bottom: 24px;">
+    42m from Cebu Institute of Technology - University
+</p>
+{% if error %}
+<div style="background: #381f1f; color: #ff8b8b; padding: 12px; border-radius: 10px; font-size: 13px; margin-bottom: 16px;">{{ error }}</div>
+{% endif %}
+{% if message %}
+<div style="background: #1d3623; color: #8ee09f; padding: 12px; border-radius: 10px; font-size: 13px; margin-bottom: 16px;">{{ message }}</div>
+{% endif %}
+
+<form method="POST" id="clockForm">
+    {% csrf_token %}
+    <input type="hidden" name="lat" id="latInput" value="10.2943">
+<input type="hidden" name="lng" id="lngInput" value="123.8812">
+    
+    <div style="display: flex; justify-content: center; margin-bottom: 20px;">
+        <button type="submit" style="width: 160px; height: 160px; border-radius: 50%; background: var(--primary); border: none; font-size: 20px; font-weight: 700; color: #0b1a0f; cursor: pointer; box-shadow: 0 0 30px rgba(117,184,136,0.25);">
+            {% if not attendance_today %}Clock In{% elif not attendance_today.clock_out %}Clock Out{% else %}Done for Today{% endif %}
+        </button>
+    </div>
+</form>
+
+<div style="display: flex; justify-content: center; gap: 8px; margin-bottom: 20px;">
+    <button type="button" onclick="setSimulated(true)" style="background: var(--primary); color: #0c1a0f; border: none; border-radius: 20px; padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer;">Simulate location</button>
+    <button type="button" onclick="setSimulated(false)" style="background: transparent; color: var(--text-muted); border: 1px solid var(--surface-border); border-radius: 20px; padding: 6px 14px; font-size: 12px; cursor: pointer;">Use real GPS</button>
+</div>
+
+<div class="card" style="margin-top: 20px;">
+    <div style="font-weight: 600; font-size: 14px; margin-bottom: 8px;">Today's log</div>
+    <div style="font-size: 13px; color: var(--text-muted); line-height: 1.5;">
+        {% if attendance_today %}
+            In: <strong>{{ attendance_today.clock_in|time:"H:i" }}</strong> 
+            {% if attendance_today.is_late %}<span style="color: var(--accent-orange);">(Late)</span>{% endif %}<br>
+            Out: <strong>{{ attendance_today.clock_out|time:"H:i"|default:"Pending" }}</strong>
+        {% else %}
+            No punches yet today. Clock in once you're within range.
+        {% endif %}
+        <div style="border-top: 1px solid var(--surface-border); margin-top: 10px; padding-top: 10px; font-size: 12px;">
+            Clock-in cutoff is <strong>8:00 AM</strong> with a 15-minute grace period. Arriving after <strong>8:15 AM</strong> is logged as late.
+        </div>
+    </div>
+</div>
+
+<script>
+    function updateClock() {
+        const d = new Date();
+        document.getElementById('liveClock').innerText = d.toLocaleTimeString();
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+  function setSimulated(inside) {
+    if (inside) {
+        document.getElementById('latInput').value = "10.2943";
+        document.getElementById('lngInput').value = "123.8812";
+        document.getElementById('distLabel').innerText = "42m from Cebu Institute of Technology - University (Inside campus)";
+    }else {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    document.getElementById('latInput').value = pos.coords.latitude;
+                    document.getElementById('lngInput').value = pos.coords.longitude;
+                    document.getElementById('distLabel').innerText = "Live device GPS active";
+                });
+            }
+        }
+    }
+</script>
+{% endblock %}
