@@ -221,11 +221,26 @@ def admin_overview(request):
 @login_required(login_url='login')
 def admin_logs(request):
     today = timezone.localdate()
-    attendances = Attendance.objects.filter(date=today)
-    all_profiles = UserProfile.objects.all()
 
+    # Dynamic registered departments list
+    departments = (
+        UserProfile.objects.exclude(department__isnull=True)
+        .exclude(department__exact='')
+        .values_list('department', flat=True)
+        .distinct()
+        .order_by('department')
+    )
+
+    selected_department = request.GET.get('department', '').strip()
+
+    # Filter profiles by department if chosen
+    profiles = UserProfile.objects.all()
+    if selected_department and selected_department != 'ALL':
+        profiles = profiles.filter(department__iexact=selected_department)
+
+    attendances = Attendance.objects.filter(date=today)
     logs = []
-    for prof in all_profiles:
+    for prof in profiles:
         att = attendances.filter(user=prof.user).first()
         logs.append({
             'profile': prof,
@@ -234,7 +249,12 @@ def admin_logs(request):
             'att_id': att.id if att else None,
         })
 
-    return render(request, 'TimeTracker/admin_logs.html', {'logs': logs, 'today': today})
+    return render(request, 'TimeTracker/admin_logs.html', {
+        'logs': logs,
+        'today': today,
+        'departments': departments,
+        'selected_department': selected_department,
+    })
 
 @login_required(login_url='login')
 def admin_leave_approval(request):
@@ -273,7 +293,6 @@ def admin_users(request):
 
 @login_required(login_url='login')
 def admin_reports(request):
-    # Retrieve all unique departments registered by users
     departments = (
         UserProfile.objects.exclude(department__isnull=True)
         .exclude(department__exact='')
@@ -284,14 +303,10 @@ def admin_reports(request):
 
     selected_department = request.GET.get('department', '').strip()
 
-    # Query attendance records with related user and profile data
     records = Attendance.objects.select_related('user__profile').all().order_by('-date')
-
-    # Apply department filter if selected
     if selected_department and selected_department != 'ALL':
         records = records.filter(user__profile__department__iexact=selected_department)
 
-    # Handle CSV Export
     if request.method == 'POST':
         response = HttpResponse(content_type='text/csv')
         filename = f"attendance_report_{selected_department or 'all'}.csv"
