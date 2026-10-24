@@ -1,10 +1,5 @@
 {% extends 'TimeTracker/base.html' %}
 {% block content %}
-<style>
-    .role-badge-ADMIN { color: #8de2a6; font-size: 11px; font-weight: 700; }
-    .role-badge-EMPLOYEE { color: var(--text-muted); font-size: 11px; font-weight: 700; }
-</style>
-
 <div style="text-align: center; margin: 24px 0 32px 0;">
     <div style="font-size: 38px; margin-bottom: 8px;">⏱</div>
     <div style="font-size: 26px; font-family: Georgia, serif; font-weight: 700; color: #b5e4c2;">TimeTracker</div>
@@ -33,17 +28,4 @@
     <button type="submit" class="btn-primary" style="margin-top: 8px;">Log in</button>
 </form>
 
-<div class="card" style="margin-top: 32px; border: 1px dashed #2f3e31;">
-    <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.8px; color: var(--text-muted); margin-bottom: 12px;">DEMO ACCOUNTS — TAP TO SIGN IN INSTANTLY</div>
-    {% for p in demo_profiles %}
-    <form method="POST" style="margin-bottom: 8px;">
-        {% csrf_token %}
-        <input type="hidden" name="demo_user" value="{{ p.user.email }}">
-        <button type="submit" style="width: 100%; display: flex; justify-content: space-between; align-items: center; background: #121813; border: 1px solid var(--surface-border); border-radius: 12px; padding: 14px 16px; color: var(--text-main); font-weight: 600; cursor: pointer;">
-            <span>{{ p.full_name }}</span>
-            <span class="role-badge-{{ p.role }}">{{ p.role }}</span>
-        </button>
-    </form>
-    {% endfor %}
-</div>
 {% endblock %}
