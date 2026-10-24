@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TimeTracker</title>
-  <style>
+ <style>
     :root {
         --bg: #0e140f;
         --surface: #171f18;
@@ -24,37 +24,42 @@
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
     }
 
+    /* Full-screen seamless background */
     body { 
-        background: #050805; 
+        background: var(--bg); 
         color: var(--text-main); 
         display: flex; 
         justify-content: center; 
+        align-items: center;
         min-height: 100vh; 
+        width: 100%;
         overflow-x: hidden;
     }
 
-    /* Base Shell: Phone/CP */
+    /* Full-width responsive shell */
     .app-shell { 
         width: 100%; 
-        max-width: 100%; 
-        background: var(--bg); 
         min-height: 100vh; 
-        padding: 18px 20px 95px 20px; 
+        background: var(--bg); 
+        padding: 24px 20px 95px 20px; 
         position: relative; 
-        border-left: 1px solid #1a221a; 
-        border-right: 1px solid #1a221a; 
-        transition: max-width 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
     }
 
-    /* Laptop & Desktop Shell Adaptation */
+    /* Constrain contents on wide screens so forms stay centered and neat */
+    .app-shell > *,
+    .app-shell form,
+    .top-nav {
+        width: 100%;
+        max-width: 460px;
+    }
+
     @media (min-width: 768px) {
         .app-shell {
-            max-width: 760px;
-            padding: 32px 36px 110px 36px;
-            margin: 20px 0;
-            border-radius: 20px;
-            border: 1px solid var(--surface-border);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+            padding: 40px 32px 110px 32px;
         }
     }
 
@@ -125,7 +130,7 @@
     .page-tag { font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--primary); text-transform: uppercase; margin-bottom: 4px; }
     .page-title { font-size: 26px; font-family: Georgia, serif; font-weight: 600; margin-bottom: 6px; }
     .page-sub { color: var(--text-muted); font-size: 13px; margin-bottom: 20px; line-height: 1.4; }
-    .card { background: var(--surface); border: 1px solid var(--surface-border); border-radius: 18px; padding: 18px; margin-bottom: 16px; }
+    .card { background: var(--surface); border: 1px solid var(--surface-border); border-radius: 18px; padding: 18px; margin-bottom: 16px; width: 100%; }
     
     .btn-primary { 
         width: 100%; 
@@ -146,7 +151,7 @@
         background: var(--primary-hover);
     }
 
-    /* Responsive Bottom Navigation */
+    /* Bottom Navigation Bar */
     .bottom-nav { 
         position: fixed; 
         bottom: 0; 
@@ -183,12 +188,11 @@
         font-weight: 700; 
     }
 
-    /* Laptop & Tablet Floating Nav */
     @media (min-width: 768px) {
         .bottom-nav {
             left: 50%;
             transform: translateX(-50%);
-            max-width: 760px;
+            max-width: 600px;
             bottom: 16px;
             border: 1px solid var(--surface-border);
             border-radius: 18px;
