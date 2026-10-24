@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TimeTracker Admin</title>
-  <style>
+ <style>
     :root {
         --bg: #0e140f;
         --surface: #171f18;
@@ -27,42 +27,31 @@
     body { 
         background: var(--bg); 
         color: var(--text-main); 
-        display: flex; 
-        flex-direction: column;
-        align-items: center; 
         min-height: 100vh; 
         width: 100%;
         overflow-x: hidden;
     }
 
-    /* Full-width responsive shell */
+    /* Main container: Centered and responsive column */
     .app-shell { 
         width: 100%; 
-        max-width: 100%; 
-        background: var(--bg); 
+        max-width: 900px; /* Comfortable width for desktop tables & cards */
+        margin: 0 auto;   /* Centers the entire layout on screen */
         min-height: 100vh; 
-        padding: 20px 16px 95px 16px; 
+        padding: 24px 20px 110px 20px; 
         position: relative; 
-        border: none;
         display: flex;
         flex-direction: column;
+        align-items: stretch; /* Ensures all children align consistently */
     }
 
-    /* Constrain administrative workspace to a comfortable widescreen width */
-    .app-shell > * {
-        width: 100%;
-        max-width: 1080px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-
-    /* Laptop & Desktop adjustments */
     @media (min-width: 768px) {
         .app-shell {
-            padding: 32px 32px 115px 32px;
+            padding: 36px 28px 120px 28px;
         }
     }
 
+    /* Navigation header */
     .top-nav { 
         display: flex; 
         align-items: center; 
@@ -75,24 +64,48 @@
     .btn-logout { background: transparent; border: 1px solid var(--surface-border); color: var(--text-muted); padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; text-decoration: none; transition: background 0.2s; }
     .btn-logout:hover { background: rgba(255, 255, 255, 0.05); }
 
+    /* Section titles & headers */
     .page-tag { font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--primary); text-transform: uppercase; margin-bottom: 4px; }
     .page-title { font-size: 26px; font-family: Georgia, serif; font-weight: 600; margin-bottom: 6px; }
-    .page-sub { color: var(--text-muted); font-size: 13px; margin-bottom: 20px; line-height: 1.4; }
-    
+    .page-sub { color: var(--text-muted); font-size: 13px; margin-bottom: 24px; line-height: 1.4; }
+
+    /* Fix section label alignment (e.g. "Needs your attention", "Today's snapshot", "All staff") */
+    h2, h3, h4, .section-title {
+        width: 100%;
+        text-align: left;
+        margin-top: 18px;
+        margin-bottom: 12px;
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text-main);
+    }
+
+    /* Cards & Containers */
     .card { 
         background: var(--surface); 
         border: 1px solid var(--surface-border); 
         border-radius: 18px; 
         padding: 18px; 
-        margin-bottom: 16px; 
+        margin-bottom: 14px; 
         width: 100%;
     }
 
+    /* Stat Cards Row (0 Clocked in now / 0 Completed today / 1 Not clocked in yet) */
+    .stat-grid,
+    div[style*="display: grid; grid-template-columns: 1fr 1fr 1fr"] {
+        display: grid !important;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important;
+        gap: 12px !important;
+        width: 100% !important;
+        margin-bottom: 20px !important;
+    }
+
+    /* Buttons */
     .btn-primary { width: 100%; background: var(--primary); color: #0b170e; border: none; border-radius: 12px; padding: 12px; font-weight: 700; font-size: 14px; cursor: pointer; text-align: center; text-decoration: none; display: inline-block; transition: background 0.2s; }
     .btn-primary:hover { background: var(--primary-hover); }
     .btn-secondary { width: 100%; background: #161e17; border: 1px solid var(--surface-border); color: var(--text-main); border-radius: 12px; padding: 12px; font-weight: 700; font-size: 14px; cursor: pointer; text-decoration: none; display: inline-block; text-align: center; }
 
-    /* Responsive Bottom Navigation Bar */
+    /* Responsive Floating Bottom Navigation Bar */
     .bottom-nav { 
         position: fixed; 
         bottom: 0; 
@@ -115,11 +128,11 @@
         flex-direction: column; 
         align-items: center; 
         font-size: 12px; 
-        font-weight: 500;
+        font-weight: 500; 
         gap: 4px; 
-        padding: 6px 14px;
-        border-radius: 8px;
-        transition: color 0.2s ease, background-color 0.2s ease;
+        padding: 6px 14px; 
+        border-radius: 8px; 
+        transition: color 0.2s ease, background-color 0.2s ease; 
     }
     .nav-item:hover { color: var(--text-main); }
     .nav-item.active { color: var(--primary); font-weight: 700; }
@@ -128,7 +141,7 @@
         .bottom-nav { 
             left: 50%; 
             transform: translateX(-50%); 
-            max-width: 680px; 
+            max-width: 720px; 
             bottom: 16px; 
             border: 1px solid var(--surface-border); 
             border-radius: 18px; 
@@ -138,7 +151,7 @@
         .nav-item { font-size: 13px; }
     }
 
-    /* Inputs & Select Elements */
+    /* Inputs & Selects */
     input, select, textarea { 
         width: 100%; 
         background: #121813; 
@@ -148,14 +161,14 @@
         color: var(--text-main); 
         font-size: 14px; 
         outline: none; 
-        box-sizing: border-box;
+        box-sizing: border-box; 
     }
-    input:focus, select:focus, textarea:focus {
-        border-color: var(--primary);
-        box-shadow: 0 0 0 1px var(--primary);
+    input:focus, select:focus, textarea:focus { 
+        border-color: var(--primary); 
+        box-shadow: 0 0 0 1px var(--primary); 
     }
 
-    /* Responsive Data Tables for Admin Logs & Rosters */
+    /* Responsive Data Tables */
     .table-responsive {
         width: 100%;
         overflow-x: auto;
