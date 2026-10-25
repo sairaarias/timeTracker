@@ -3,6 +3,16 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import time
 
+class WorkplaceSetting(models.Model):
+    name = models.CharField(max_length=255, default="Cebu Institute of Technology - University")
+    maps_url = models.URLField(max_length=500, blank=True)
+    latitude = models.FloatField(default=10.2943)
+    longitude = models.FloatField(default=123.8812)
+    radius_meters = models.IntegerField(default=100)
+
+    def __str__(self):
+        return self.name
+
 class UserProfile(models.Model):
     ROLE_CHOICES = (
         ('EMPLOYEE', 'Employee'),
@@ -14,6 +24,13 @@ class UserProfile(models.Model):
     department = models.CharField(max_length=100)
     employee_id = models.CharField(max_length=20, unique=True, blank=True, null=True)
     is_approved = models.BooleanField(default=True)
+    workplace = models.ForeignKey(
+        WorkplaceSetting,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='members'
+    )
 
     def __str__(self):
         return f"{self.full_name} ({self.role})"
@@ -33,7 +50,6 @@ class Attendance(models.Model):
     @property
     def total_hours(self):
         if self.clock_in and self.clock_out:
-            # simple hour calculation
             in_minutes = self.clock_in.hour * 60 + self.clock_in.minute
             out_minutes = self.clock_out.hour * 60 + self.clock_out.minute
             diff = max(0, out_minutes - in_minutes)
@@ -61,13 +77,3 @@ class LeaveRequest(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.request_type} ({self.status})"
-
-class WorkplaceSetting(models.Model):
-    name = models.CharField(max_length=255, default="Cebu Institute of Technology - University")
-    maps_url = models.URLField(max_length=500, blank=True)
-    latitude = models.FloatField(default=10.2943)
-    longitude = models.FloatField(default=123.8812)
-    radius_meters = models.IntegerField(default=100)
-
-    def __str__(self):
-        return self.name

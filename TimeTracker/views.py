@@ -104,6 +104,19 @@ def register_view(request):
         if User.objects.filter(email=email).exists():
             return render(request, 'TimeTracker/register.html', {'error': 'Email already in use.'})
 
+        user_workplace = None
+        if workplace_url:
+            user_workplace = WorkplaceSetting.objects.filter(maps_url=workplace_url).first()
+            if not user_workplace:
+                name, lat, lng = extract_workplace_info_from_url(workplace_url)
+                user_workplace = WorkplaceSetting.objects.create(
+                    name=name if name else "Workplace",
+                    maps_url=workplace_url,
+                    latitude=lat if lat is not None else DEFAULT_LAT,
+                    longitude=lng if lng is not None else DEFAULT_LNG,
+                    radius_meters=DEFAULT_RADIUS
+                )
+
         username = email.split('@')[0]
         user = User.objects.create_user(username=username, email=email, password=password)
         emp_id = f"EMP-{user.id:03d}"
@@ -113,19 +126,9 @@ def register_view(request):
             full_name=full_name,
             department=department,
             employee_id=emp_id,
-            is_approved=True
+            is_approved=True,
+            workplace=user_workplace
         )
-
-        if workplace_url:
-            name, lat, lng = extract_workplace_info_from_url(workplace_url)
-            setting, _ = WorkplaceSetting.objects.get_or_create(id=1)
-            setting.maps_url = workplace_url
-            if name:
-                setting.name = name
-            if lat is not None and lng is not None:
-                setting.latitude = lat
-                setting.longitude = lng
-            setting.save()
 
         login(request, user)
         if role == 'ADMIN':
@@ -162,7 +165,9 @@ def clock_view(request):
     message = None
     error = None
 
-    workplace = WorkplaceSetting.objects.first()
+    user_profile = getattr(request.user, 'profile', None)
+    workplace = user_profile.workplace if user_profile and user_profile.workplace else WorkplaceSetting.objects.first()
+
     workplace_name = workplace.name if workplace else "Cebu Institute of Technology - University"
     target_lat = workplace.latitude if workplace else DEFAULT_LAT
     target_lng = workplace.longitude if workplace else DEFAULT_LNG
@@ -244,9 +249,11 @@ def profile_view(request):
 @login_required(login_url='login')
 def admin_overview(request):
     today = timezone.localdate()
-    staff_profiles = UserProfile.objects.filter(role='EMPLOYEE')
+    admin_workplace = getattr(request.user.profile, 'workplace', None)
 
-    today_attendances = Attendance.objects.filter(date=today)
+    staff_profiles = UserProfile.objects.filter(role='EMPLOYEE', workplace=admin_workplace)
+
+    today_attendances = Attendance.objects.filter(date=today, user__profile__workplace=admin_workplace)
     clocked_in_ids = today_attendances.filter(clock_out__isnull=True).values_list('user_id', flat=True)
     completed_ids = today_attendances.filter(clock_out__isnull=False).values_list('user_id', flat=True)
 
@@ -254,8 +261,8 @@ def admin_overview(request):
     completed_count = completed_ids.count()
     not_clocked_in_count = staff_profiles.exclude(user_id__in=today_attendances.values_list('user_id', flat=True)).count()
 
-    pending_users_count = UserProfile.objects.filter(is_approved=False).count()
-    pending_leaves_count = LeaveRequest.objects.filter(status='Pending').count()
+    pending_users_count = UserProfile.objects.filter(is_approved=False, workplace=admin_workplace).count()
+    pending_leaves_count = LeaveRequest.objects.filter(status='Pending', user__profile__workplace=admin_workplace).count()
 
     snapshot = []
     for sp in staff_profiles:
@@ -275,14 +282,17 @@ def admin_overview(request):
         'pending_users_count': pending_users_count,
         'pending_leaves_count': pending_leaves_count,
         'snapshot': snapshot,
+        'workplace_name': admin_workplace.name if admin_workplace else "Unassigned",
     })
 
 @login_required(login_url='login')
 def admin_logs(request):
     today = timezone.localdate()
+    admin_workplace = getattr(request.user.profile, 'workplace', None)
 
     departments = (
-        UserProfile.objects.exclude(department__isnull=True)
+        UserProfile.objects.filter(workplace=admin_workplace)
+        .exclude(department__isnull=True)
         .exclude(department__exact='')
         .values_list('department', flat=True)
         .distinct()
@@ -291,11 +301,11 @@ def admin_logs(request):
 
     selected_department = request.GET.get('department', '').strip()
 
-    profiles = UserProfile.objects.all()
+    profiles = UserProfile.objects.filter(workplace=admin_workplace)
     if selected_department and selected_department != 'ALL':
         profiles = profiles.filter(department__iexact=selected_department)
 
-    attendances = Attendance.objects.filter(date=today)
+    attendances = Attendance.objects.filter(date=today, user__profile__workplace=admin_workplace)
     logs = []
     for prof in profiles:
         att = attendances.filter(user=prof.user).first()
@@ -315,24 +325,28 @@ def admin_logs(request):
 
 @login_required(login_url='login')
 def admin_leave_approval(request):
+    admin_workplace = getattr(request.user.profile, 'workplace', None)
+
     if request.method == 'POST':
         leave_id = request.POST.get('leave_id')
         action = request.POST.get('action')
-        leave = LeaveRequest.objects.filter(id=leave_id).first()
+        leave = LeaveRequest.objects.filter(id=leave_id, user__profile__workplace=admin_workplace).first()
         if leave:
             leave.status = 'Approved' if action == 'approve' else 'Rejected'
             leave.save()
             return redirect('admin_leave')
 
-    pending_leaves = LeaveRequest.objects.filter(status='Pending').order_by('-created_at')
+    pending_leaves = LeaveRequest.objects.filter(status='Pending', user__profile__workplace=admin_workplace).order_by('-created_at')
     return render(request, 'TimeTracker/admin_leave.html', {'pending_leaves': pending_leaves})
 
 @login_required(login_url='login')
 def admin_users(request):
+    admin_workplace = getattr(request.user.profile, 'workplace', None)
+
     if request.method == 'POST':
         user_id = request.POST.get('user_id')
         action = request.POST.get('action')
-        prof = UserProfile.objects.filter(id=user_id).first()
+        prof = UserProfile.objects.filter(id=user_id, workplace=admin_workplace).first()
         if prof:
             if action == 'verify':
                 prof.is_approved = True
@@ -341,8 +355,8 @@ def admin_users(request):
                 prof.user.delete()
             return redirect('admin_users')
 
-    unapproved_users = UserProfile.objects.filter(is_approved=False)
-    all_staff = UserProfile.objects.all()
+    unapproved_users = UserProfile.objects.filter(is_approved=False, workplace=admin_workplace)
+    all_staff = UserProfile.objects.filter(workplace=admin_workplace)
     return render(request, 'TimeTracker/admin_users.html', {
         'unapproved_users': unapproved_users,
         'all_staff': all_staff
@@ -350,8 +364,11 @@ def admin_users(request):
 
 @login_required(login_url='login')
 def admin_reports(request):
+    admin_workplace = getattr(request.user.profile, 'workplace', None)
+
     departments = (
-        UserProfile.objects.exclude(department__isnull=True)
+        UserProfile.objects.filter(workplace=admin_workplace)
+        .exclude(department__isnull=True)
         .exclude(department__exact='')
         .values_list('department', flat=True)
         .distinct()
@@ -360,7 +377,7 @@ def admin_reports(request):
 
     selected_department = request.GET.get('department', '').strip()
 
-    records = Attendance.objects.select_related('user__profile').all().order_by('-date')
+    records = Attendance.objects.filter(user__profile__workplace=admin_workplace).select_related('user__profile').order_by('-date')
     if selected_department and selected_department != 'ALL':
         records = records.filter(user__profile__department__iexact=selected_department)
 
