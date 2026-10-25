@@ -23,17 +23,15 @@
     <div class="form-group">
         <label class="form-label">Sign up as</label>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <label id="card-employee" class="role-btn-card active" style="border-radius: 12px; padding: 12px; cursor: pointer; text-align: center; display: block; transition: all 0.2s ease;">
+            <label id="card-employee" class="role-btn-card active" style="border-radius: 12px; padding: 14px 12px; cursor: pointer; text-align: center; display: block; transition: all 0.2s ease;">
                 <input type="radio" name="role" value="EMPLOYEE" checked style="display: none;" onchange="handleRoleChange('EMPLOYEE')">
-                <div style="font-size: 20px; margin-bottom: 4px;">🧑‍🏫</div>
                 <div style="font-weight: 700; font-size: 14px;">Employee</div>
-                <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Teacher / staff clocking in</div>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Teacher / staff clocking in</div>
             </label>
-            <label id="card-admin" class="role-btn-card" style="border-radius: 12px; padding: 12px; cursor: pointer; text-align: center; display: block; transition: all 0.2s ease;">
+            <label id="card-admin" class="role-btn-card" style="border-radius: 12px; padding: 14px 12px; cursor: pointer; text-align: center; display: block; transition: all 0.2s ease;">
                 <input type="radio" name="role" value="ADMIN" style="display: none;" onchange="handleRoleChange('ADMIN')">
-                <div style="font-size: 20px; margin-bottom: 4px;">🛡️</div>
                 <div style="font-weight: 700; font-size: 14px;">Admin</div>
-                <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Manages attendance & approvals</div>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Manages attendance & approvals</div>
             </label>
         </div>
     </div>
