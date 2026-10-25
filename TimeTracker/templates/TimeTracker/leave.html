@@ -1,50 +1,87 @@
 {% extends 'TimeTracker/base.html' %}
 {% block content %}
-<div class="page-tag">Leave & Excuse Requests</div>
+<style>
+    .status-badge {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 6px;
+    }
+    .status-approved {
+        background: #193320;
+        color: var(--primary);
+    }
+    .status-rejected {
+        background: #381f1f;
+        color: #ff8b8b;
+    }
+    .status-pending {
+        background: #2b2314;
+        color: #d9a036;
+    }
+</style>
+
+<div class="page-tag">LEAVE & EXCUSE REQUESTS</div>
 <div class="page-title">File a request</div>
 <p class="page-sub">Submit a leave or excuse request for admin approval, and track the status of past requests.</p>
 
 <div class="card">
-    <div style="font-weight: 600; font-size: 14px; margin-bottom: 14px;">New request</div>
+    <div style="font-weight: 600; font-size: 15px; margin-bottom: 14px;">New request</div>
+    
     <form method="POST">
         {% csrf_token %}
         <div class="form-group">
             <label class="form-label">Type</label>
-            <select name="request_type" class="input-box" style="appearance: none;">
+            <select name="request_type" class="input-box">
                 <option value="Sick Leave">Sick Leave</option>
                 <option value="Vacation Leave">Vacation Leave</option>
                 <option value="Official Business">Official Business</option>
+                <option value="Emergency Leave">Emergency Leave</option>
             </select>
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;" class="form-group">
-            <div>
+
+        <!-- Date row with minmax(0, 1fr) to prevent right-edge overflow -->
+        <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; margin-bottom: 16px; width: 100%;">
+            <div style="min-width: 0;">
                 <label class="form-label">From</label>
-                <input type="date" name="from_date" class="input-box" required>
+                <input type="date" name="from_date" class="input-box" required style="width: 100%; min-width: 0; padding: 10px 12px; font-size: 13px;">
             </div>
-            <div>
+            <div style="min-width: 0;">
                 <label class="form-label">To</label>
-                <input type="date" name="to_date" class="input-box" required>
+                <input type="date" name="to_date" class="input-box" required style="width: 100%; min-width: 0; padding: 10px 12px; font-size: 13px;">
             </div>
         </div>
+
         <div class="form-group">
             <label class="form-label">Reason</label>
-            <textarea name="reason" rows="3" class="input-box" placeholder="Briefly explain your request" required></textarea>
+            <textarea name="reason" class="input-box" rows="3" placeholder="Briefly explain your request" style="height: auto; resize: vertical;" required></textarea>
         </div>
-        <button type="submit" class="btn-primary" style="margin-top: 4px;">Submit request</button>
+
+        <button type="submit" class="btn-primary" style="margin-top: 6px;">Submit request</button>
     </form>
 </div>
 
-<div style="font-weight: 600; font-size: 15px; margin: 24px 0 12px 0;">Your requests</div>
-{% for r in requests %}
-<div class="card" style="margin-bottom: 8px;">
-    <div style="display: flex; justify-content: space-between; align-items: baseline;">
-        <strong>{{ r.request_type }}</strong>
-        <span style="font-size: 11px; font-weight: 700; color: #d89858; background: #332316; padding: 2px 8px; border-radius: 12px;">{{ r.status }}</span>
+<!-- Past requests section with extra clearance above the bottom bar -->
+<div style="margin-top: 24px; padding-bottom: 40px;">
+    <h3 class="section-title">Your requests</h3>
+
+    {% for r in requests %}
+    <div class="card" style="padding: 14px; margin-bottom: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+            <div style="font-weight: 600; font-size: 14px;">{{ r.request_type }}</div>
+            <span class="status-badge {% if r.status == 'Approved' %}status-approved{% elif r.status == 'Rejected' %}status-rejected{% else %}status-pending{% endif %}">
+                {{ r.status }}
+            </span>
+        </div>
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">
+            {{ r.from_date }} &rarr; {{ r.to_date }}
+        </div>
+        <div style="font-size: 12px; color: var(--text-main);">
+            {{ r.reason }}
+        </div>
     </div>
-    <div style="font-size: 12px; color: var(--text-muted); margin: 6px 0;">{{ r.from_date|date:"M d, Y" }} – {{ r.to_date|date:"M d, Y" }}</div>
-    <div style="font-size: 13px; color: #ccd5ce;">{{ r.reason }}</div>
+    {% empty %}
+    <p style="color: var(--text-muted); font-size: 13px;">No past requests found.</p>
+    {% endfor %}
 </div>
-{% empty %}
-<p style="font-size: 13px; color: var(--text-muted);">No requests filed yet.</p>
-{% endfor %}
 {% endblock %}

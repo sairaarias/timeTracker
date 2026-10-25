@@ -41,16 +41,16 @@
 
     /* Full-width responsive shell aligned to the top */
     .app-shell { 
-        width: 100%; 
-        min-height: 100vh; 
-        background: var(--bg); 
-        padding: 24px 20px 95px 20px; 
-        position: relative; 
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: flex-start;
-    }
+    width: 100%; 
+    min-height: 100vh; 
+    background: var(--bg); 
+    padding: 24px 20px 110px 20px; /* Ensures fixed nav bar never covers content */
+    position: relative; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+}
 
     /* Constrain contents on wide screens so forms and cards stay centered and neat */
     .app-shell > *,
