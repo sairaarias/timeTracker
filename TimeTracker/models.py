@@ -61,3 +61,13 @@ class LeaveRequest(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.request_type} ({self.status})"
+
+class WorkplaceSetting(models.Model):
+    name = models.CharField(max_length=255, default="Cebu Institute of Technology - University")
+    maps_url = models.URLField(max_length=500, blank=True)
+    latitude = models.FloatField(default=10.2943)
+    longitude = models.FloatField(default=123.8812)
+    radius_meters = models.IntegerField(default=100)
+
+    def __str__(self):
+        return self.name

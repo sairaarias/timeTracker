@@ -1,18 +1,52 @@
 import math
+import re
+import urllib.request
+import urllib.parse
+import csv
 from datetime import time
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
-from .models import UserProfile, Attendance, LeaveRequest
+from .models import UserProfile, Attendance, LeaveRequest, WorkplaceSetting
 from django.http import HttpResponse
-import csv
 
-# Workplace Geofence Coordinates (Cebu Institute of Technology - University)
-WORKPLACE_LAT = 10.2943
-WORKPLACE_LNG = 123.8812
-ALLOWED_RADIUS_METERS = 100
+DEFAULT_LAT = 10.2943
+DEFAULT_LNG = 123.8812
+DEFAULT_RADIUS = 100
+
+def extract_workplace_info_from_url(url: str):
+    if not url:
+        return None, None, None
+
+    url = url.strip()
+
+    if "maps.app.goo.gl" in url or "goo.gl/maps" in url:
+        try:
+            req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req, timeout=5) as response:
+                url = response.geturl()
+        except Exception:
+            pass
+
+    place_name = None
+    name_match = re.search(r'/place/([^/@]+)', url)
+    if name_match:
+        place_name = urllib.parse.unquote_plus(name_match.group(1)).replace('+', ' ').strip()
+
+    lat, lng = None, None
+    coord_match = re.search(r'@(-?\d+\.\d+),(-?\d+\.\d+)', url)
+    if not coord_match:
+        coord_match = re.search(r'[?&](?:q|ll)=(-?\d+\.\d+),(-?\d+\.\d+)', url)
+    if not coord_match:
+        coord_match = re.search(r'/(-?\d+\.\d+),(-?\d+\.\d+)', url)
+
+    if coord_match:
+        lat = float(coord_match.group(1))
+        lng = float(coord_match.group(2))
+
+    return place_name, lat, lng
 
 def haversine_distance(lat1, lon1, lat2, lon2):
     R = 6371000
@@ -62,6 +96,7 @@ def register_view(request):
         department = request.POST.get('department')
         password = request.POST.get('password')
         invite_code = request.POST.get('invite_code', '')
+        workplace_url = request.POST.get('workplace_url', '').strip()
 
         if role == 'ADMIN' and invite_code != 'ADMIN2026':
             return render(request, 'TimeTracker/register.html', {'error': 'Invalid Admin invite code.'})
@@ -80,7 +115,21 @@ def register_view(request):
             employee_id=emp_id,
             is_approved=True
         )
+
+        if workplace_url:
+            name, lat, lng = extract_workplace_info_from_url(workplace_url)
+            setting, _ = WorkplaceSetting.objects.get_or_create(id=1)
+            setting.maps_url = workplace_url
+            if name:
+                setting.name = name
+            if lat is not None and lng is not None:
+                setting.latitude = lat
+                setting.longitude = lng
+            setting.save()
+
         login(request, user)
+        if role == 'ADMIN':
+            return redirect('admin_overview')
         return redirect('dashboard')
 
     return render(request, 'TimeTracker/register.html')
@@ -113,13 +162,19 @@ def clock_view(request):
     message = None
     error = None
 
-    if request.method == 'POST':
-        lat = float(request.POST.get('lat', WORKPLACE_LAT))
-        lng = float(request.POST.get('lng', WORKPLACE_LNG))
-        dist = haversine_distance(lat, lng, WORKPLACE_LAT, WORKPLACE_LNG)
+    workplace = WorkplaceSetting.objects.first()
+    workplace_name = workplace.name if workplace else "Cebu Institute of Technology - University"
+    target_lat = workplace.latitude if workplace else DEFAULT_LAT
+    target_lng = workplace.longitude if workplace else DEFAULT_LNG
+    radius = workplace.radius_meters if workplace else DEFAULT_RADIUS
 
-        if dist > ALLOWED_RADIUS_METERS:
-            error = f"Outside workplace radius ({round(dist)}m away). Allowed: {ALLOWED_RADIUS_METERS}m."
+    if request.method == 'POST':
+        lat = float(request.POST.get('lat', target_lat))
+        lng = float(request.POST.get('lng', target_lng))
+        dist = haversine_distance(lat, lng, target_lat, target_lng)
+
+        if dist > radius:
+            error = f"Outside workplace radius ({round(dist)}m away). Allowed: {radius}m."
         else:
             now_time = timezone.localtime().time()
             if not attendance_today:
@@ -141,7 +196,11 @@ def clock_view(request):
     return render(request, 'TimeTracker/clock.html', {
         'attendance_today': attendance_today,
         'message': message,
-        'error': error
+        'error': error,
+        'workplace_name': workplace_name,
+        'workplace_lat': target_lat,
+        'workplace_lng': target_lng,
+        'radius': radius,
     })
 
 @login_required(login_url='login')
@@ -222,7 +281,6 @@ def admin_overview(request):
 def admin_logs(request):
     today = timezone.localdate()
 
-    # Dynamic registered departments list
     departments = (
         UserProfile.objects.exclude(department__isnull=True)
         .exclude(department__exact='')
@@ -233,7 +291,6 @@ def admin_logs(request):
 
     selected_department = request.GET.get('department', '').strip()
 
-    # Filter profiles by department if chosen
     profiles = UserProfile.objects.all()
     if selected_department and selected_department != 'ALL':
         profiles = profiles.filter(department__iexact=selected_department)

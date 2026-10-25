@@ -13,14 +13,15 @@
 <div style="display: flex; justify-content: center; margin-bottom: 24px;">
     <div style="width: 140px; height: 140px; border-radius: 50%; border: 1px dashed #2f4433; display: flex; align-items: center; justify-content: center;">
         <div style="width: 80px; height: 80px; border-radius: 50%; background: #1c2e21; border: 1px solid var(--primary); display: flex; align-items: center; justify-content: center; font-size: 11px; color: #b7e0c0;">
-            100m radius
+            {{ radius|default:100 }}m radius
         </div>
     </div>
 </div>
 
 <p id="distLabel" style="text-align: center; font-size: 13px; color: var(--text-muted); margin-bottom: 24px;">
-    42m from Cebu Institute of Technology - University
+    <span style="color: var(--primary); font-weight: 600;">{{ workplace_name|default:"Cebu Institute of Technology - University" }}</span>
 </p>
+
 {% if error %}
 <div style="background: #381f1f; color: #ff8b8b; padding: 12px; border-radius: 10px; font-size: 13px; margin-bottom: 16px;">{{ error }}</div>
 {% endif %}
@@ -30,8 +31,8 @@
 
 <form method="POST" id="clockForm">
     {% csrf_token %}
-    <input type="hidden" name="lat" id="latInput" value="10.2943">
-<input type="hidden" name="lng" id="lngInput" value="123.8812">
+    <input type="hidden" name="lat" id="latInput" value="{{ workplace_lat|default:'10.2943' }}">
+    <input type="hidden" name="lng" id="lngInput" value="{{ workplace_lng|default:'123.8812' }}">
     
     <div style="display: flex; justify-content: center; margin-bottom: 20px;">
         <button type="submit" style="width: 160px; height: 160px; border-radius: 50%; background: var(--primary); border: none; font-size: 20px; font-weight: 700; color: #0b1a0f; cursor: pointer; box-shadow: 0 0 30px rgba(117,184,136,0.25);">
@@ -41,8 +42,8 @@
 </form>
 
 <div style="display: flex; justify-content: center; gap: 8px; margin-bottom: 20px;">
-    <button type="button" onclick="setSimulated(true)" style="background: var(--primary); color: #0c1a0f; border: none; border-radius: 20px; padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer;">Simulate location</button>
-    <button type="button" onclick="setSimulated(false)" style="background: transparent; color: var(--text-muted); border: 1px solid var(--surface-border); border-radius: 20px; padding: 6px 14px; font-size: 12px; cursor: pointer;">Use real GPS</button>
+    <button type="button" id="btnSimulate" onclick="setSimulated(true)" style="background: var(--primary); color: #0c1a0f; border: none; border-radius: 20px; padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer;">Simulate location</button>
+    <button type="button" id="btnGps" onclick="setSimulated(false)" style="background: transparent; color: var(--text-muted); border: 1px solid var(--surface-border); border-radius: 20px; padding: 6px 14px; font-size: 12px; cursor: pointer;">Use real GPS</button>
 </div>
 
 <div class="card" style="margin-top: 20px;">
@@ -62,6 +63,11 @@
 </div>
 
 <script>
+    const targetLat = Number("{{ workplace_lat|default:'10.2943' }}");
+    const targetLng = Number("{{ workplace_lng|default:'123.8812' }}");
+    const workplaceName = "{{ workplace_name|default:'Cebu Institute of Technology - University'|escapejs }}";
+    const allowedRadius = Number("{{ radius|default:'100' }}");
+
     function updateClock() {
         const d = new Date();
         document.getElementById('liveClock').innerText = d.toLocaleTimeString();
@@ -69,18 +75,57 @@
     setInterval(updateClock, 1000);
     updateClock();
 
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371000;
+        const rad = Math.PI / 180;
+        const dLat = (lat2 - lat1) * rad;
+        const dLon = (lon2 - lon1) * rad;
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                  Math.cos(lat1 * rad) * Math.cos(lat2 * rad) *
+                  Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
     function setSimulated(inside) {
+        const btnSimulate = document.getElementById('btnSimulate');
+        const btnGps = document.getElementById('btnGps');
+
         if (inside) {
-            document.getElementById('latInput').value = "10.3157";
-            document.getElementById('lngInput').value = "123.8854";
-            document.getElementById('distLabel').innerText = "42m from Cebu Heritage Learning Center (Inside workplace)";
+            btnSimulate.style.background = 'var(--primary)';
+            btnSimulate.style.color = '#0c1a0f';
+            btnGps.style.background = 'transparent';
+            btnGps.style.color = 'var(--text-muted)';
+
+            document.getElementById('latInput').value = targetLat;
+            document.getElementById('lngInput').value = targetLng;
+            document.getElementById('distLabel').innerHTML = `<span style="color: var(--primary); font-weight: 600;">${workplaceName}</span> <span style="color: var(--primary); font-size: 12px;">(Inside workplace)</span>`;
         } else {
+            btnGps.style.background = 'var(--primary)';
+            btnGps.style.color = '#0c1a0f';
+            btnSimulate.style.background = 'transparent';
+            btnSimulate.style.color = 'var(--text-muted)';
+
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((pos) => {
-                    document.getElementById('latInput').value = pos.coords.latitude;
-                    document.getElementById('lngInput').value = pos.coords.longitude;
-                    document.getElementById('distLabel').innerText = "Live device GPS active";
-                });
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        const userLat = pos.coords.latitude;
+                        const userLng = pos.coords.longitude;
+                        document.getElementById('latInput').value = userLat;
+                        document.getElementById('lngInput').value = userLng;
+
+                        const dist = Math.round(calculateDistance(userLat, userLng, targetLat, targetLng));
+                        if (dist <= allowedRadius) {
+                            document.getElementById('distLabel').innerHTML = `<span style="color: var(--primary); font-weight: 600;">${workplaceName}</span> <span style="color: var(--primary); font-size: 12px;">(Within range)</span>`;
+                        } else {
+                            document.getElementById('distLabel').innerHTML = `<span style="color: var(--primary); font-weight: 600;">${workplaceName}</span> <span style="color: #ff8b8b; font-size: 12px;">(Outside radius)</span>`;
+                        }
+                    },
+                    (err) => {
+                        alert("Could not fetch device location: " + err.message);
+                    }
+                );
+            } else {
+                alert("Geolocation is not supported by your browser.");
             }
         }
     }
